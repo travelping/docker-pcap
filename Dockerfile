@@ -6,8 +6,9 @@ RUN apk add --no-cache tcpdump coreutils
 # -W max number of created files (rotating buffer since files from the beginning are overwritten)
 # -w writing the raw packets to a file rather than to stdout
 
-ENV EXP=""
+ENV FILTER=""
+ENV IFACE="any"
 
 RUN mkdir /data
 
-CMD [ "/bin/sh", "-c", "/usr/sbin/tcpdump -C 1000 -W 100 -v -w /data/dump $EXP" ]
+CMD [ "/bin/sh", "-c", "/usr/sbin/tcpdump -C 1000 -W 100 -v -w /data/dump -i $IFACE $FILTER" ]
