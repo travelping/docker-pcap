@@ -1,23 +1,38 @@
 # TCPDUMP in a container
 
 This container starts a tcpdump and safes the captured packages in files. It
-uses the `-C` option to limit the file size to 1 Gigabyte. Also `-W` is used to
-limit the creation of new files to 10 files. When the last file has the reached
-the maximum size (1 Gigabyte) tcpdump will overwrite all files (one by one)
-starting with the first one. All created files are located in the container in
-the `/data` directory.
+uses the `-C` option to limit the file size to 1 Gigabyte by default.  Also `-W`
+is used to limit the creation of new files to 10 files by default. When the last
+file has the reached the maximum size tcpdump will overwrite all files (one by
+one) starting with the first one. All created files are located in the container
+in the `/data` directory.
 
 ## Usage
 
 For the container to be able to capture packages on any interface of the host
 system `--net=host` needs to be passed to the docker run command.
 
-The interface can be set by overwriting the `IFACE` variable using the `-e`
-option. The default value is `any`.
+Environment variables can be overwritten using the `-e` option of the `docker
+run` command.
 
-The filter rules can be specified by setting the `FILTER` variable also using
-the `-e` option. The default value is an empty string resulting in tcpdump
-capturing all packages.
+These options are configurable:
+
+| Name          | default value |
+|:--------------|:--------------|
+| `IFACE`       |         `any` |
+| `FILTER`      |          `""` |
+| `MAXFILESIZE` |        `1000` |
+| `MAXFILENUM`  |          `10` |
+
+`IFACE` is the interface tcpdump should listen on.
+
+`FILTER` contains the filter rules that are passed to tcpdump.
+
+`MAXFILESIZE` is the maximum size that a file can grow to before a new file will
+be opened. The unit for this is Megabytes (1 Megabyte = 1,000,000 bytes).
+
+`MAXFILENUM` is the maximum number of files that are opened before tcpdump
+starts overwriting old files one by one beginning with the first one.
 
 To extract the files, containing the captured packages, from the container to
 the host, the simplest way is to mount a host folder over the data directory

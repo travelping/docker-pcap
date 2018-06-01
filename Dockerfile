@@ -8,6 +8,8 @@ RUN apk add --no-cache tcpdump coreutils
 
 ENV FILTER=""
 ENV IFACE="any"
+ENV MAXFILESIZE="1000"
+ENV MAXFILENUM="10"
 
 RUN mkdir /data
 
