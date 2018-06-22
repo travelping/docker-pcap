@@ -1,11 +1,8 @@
-# TCPDUMP in a container
+# TSHARK in a container
 
-This container starts a tcpdump and safes the captured packages in files. It
-uses the `-C` option to limit the file size to 1 Gigabyte by default.  Also `-W`
-is used to limit the creation of new files to 10 files by default. When the last
-file has the reached the maximum size tcpdump will overwrite all files (one by
-one) starting with the first one. All created files are located in the container
-in the `/data` directory.
+This container starts a tshark and safes the captured packages in files. IT 
+uses a ring buffer with a default file size of 1 Gigabyte and a maximum number 
+of files of 10. All files are stored in the `/data` directory.
 
 ## Usage
 
@@ -25,28 +22,29 @@ These options are configurable:
 | `MAXFILENUM`  |          `10` |
 | `FILENAME`    |        `dump` |
 
-`IFACE` is the interface tcpdump should listen on.
+`IFACE` is the interface tshark should listen on.
 
-`FILTER` contains the filter rules that are passed to tcpdump.
+`FILTER` contains the filter rules that are passed to tshark.
 
 `MAXFILESIZE` is the maximum size that a file can grow to before a new file will
 be opened. The unit for this is Megabytes (1 Megabyte = 1,000,000 bytes).
 
-`MAXFILENUM` is the maximum number of files that are opened before tcpdump
+`MAXFILENUM` is the maximum number of files that are opened before tshark
 starts overwriting old files one by one beginning with the first one.
 
 The `FILENAME` variable sets the filename that is used. The default value is 
-`dump`. A number will be attached to each file, counting up starting with `0`.
+`dump`. A number will be attached to each file (see tshark manpage for more 
+information).
 
 Example:
 
 ```
 -> % ls -1 dump 
-dump0
-dump1
-dump2
-dump3
-dump4
+dump_00164_20180622110637
+dump_00165_20180622110638
+dump_00166_20180622110639
+dump_00167_20180622110640
+dump_00168_20180622110640
 ```
 
 To extract the files, containing the captured packages, from the container to
