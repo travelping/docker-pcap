@@ -23,6 +23,7 @@ These options are configurable:
 | `FILTER`      |          `""` |
 | `MAXFILESIZE` |        `1000` |
 | `MAXFILENUM`  |          `10` |
+| `FILENAME`    |        `dump` |
 
 `IFACE` is the interface tcpdump should listen on.
 
@@ -33,6 +34,20 @@ be opened. The unit for this is Megabytes (1 Megabyte = 1,000,000 bytes).
 
 `MAXFILENUM` is the maximum number of files that are opened before tcpdump
 starts overwriting old files one by one beginning with the first one.
+
+The `FILENAME` variable sets the filename that is used. The default value is 
+`dump`. A number will be attached to each file, counting up starting with `0`.
+
+Example:
+
+```
+-> % ls -1 dump 
+dump0
+dump1
+dump2
+dump3
+dump4
+```
 
 To extract the files, containing the captured packages, from the container to
 the host, the simplest way is to mount a host folder over the data directory

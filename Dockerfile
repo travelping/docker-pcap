@@ -10,8 +10,9 @@ ENV FILTER=""
 ENV IFACE="any"
 ENV MAXFILESIZE="1000"
 ENV MAXFILENUM="10"
+ENV FILENAME="dump"
 
 RUN mkdir /data
 
 CMD [ "/bin/sh", "-c", "/usr/sbin/tcpdump -C $MAXFILESIZE -W $MAXFILENUM -v -w \
-/data/dump -i $IFACE $FILTER" ]
+\"/data/$FILENAME\" -i $IFACE $FILTER" ]
