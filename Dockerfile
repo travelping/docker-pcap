@@ -13,4 +13,5 @@ ENV MAXFILENUM="10"
 
 RUN mkdir /data
 
-CMD [ "/bin/sh", "-c", "/usr/sbin/tcpdump -C 1000 -W 10 -v -w /data/dump -i $IFACE $FILTER" ]
+CMD [ "/bin/sh", "-c", "/usr/sbin/tcpdump -C $MAXFILESIZE -W $MAXFILENUM -v -w \
+/data/dump -i $IFACE $FILTER" ]
