@@ -1,5 +1,9 @@
 #!/bin/sh
 
+# FIX: since tshark wont write to a directory that is not owned by the user 
+# executing the command
+chown root:root /data
+
 INTERFACE=""
 
 for INTERFACE in $IFACE;
