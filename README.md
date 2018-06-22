@@ -34,7 +34,8 @@ starts overwriting old files one by one beginning with the first one.
 
 The `FILENAME` variable sets the filename that is used. The default value is 
 `dump`. A number will be attached to each file (see tshark manpage for more 
-information).
+information). To dump on multiple interfaces simply add more interfaces to this 
+variable seperated by a whitespace (e.g. "eth0 eth1").
 
 Example:
 
