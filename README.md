@@ -56,7 +56,8 @@ using the `-v` option of the `docker run` command.
 **Example:**
 
 ```
--> % docker run --net=host -e IFACE="enp3s0f1" -e FILTER="tcp port 80" -v $PWD/dump:/data --rm -ti travelping/pcap
+-> % docker run --net=host -e IFACE="enp3s0f1" -e FILTER="tcp port 80" -v \
+$PWD/dump:/data --rm -ti travelping/pcap
 ```
 
 After the packages are captured, they can be evaluated using tcpdumps `-r`
