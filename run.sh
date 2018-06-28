@@ -12,11 +12,11 @@ do
 done
 
 # -b filesize:
-#          max file size (creates new file counting up, unit 1 = 1,000,000 
+#          max file size (creates new file counting up, unit 1 = 1,000 
 #          bytes))
 #    files: max number of created files (rotating buffer since files from the 
 #          beginning are overwritten)
 # -w writing the raw packets to a file rather than to stdout
 
-/usr/bin/tshark  -b filesize:$MAXFILESIZE -b files:$MAXFILENUM -w \
+/usr/bin/tshark  -b filesize:${MAXFILESIZE}000 -b files:$MAXFILENUM -w \
   "/data/$FILENAME" $INTERFACES $FILTER
