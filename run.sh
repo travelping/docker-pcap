@@ -5,6 +5,7 @@
 chown root:root /data
 
 INTERFACE=""
+BUFFEROPTS=""
 
 for INTERFACE in $IFACE;
 do
@@ -16,7 +17,22 @@ done
 #          bytes))
 #    files: max number of created files (rotating buffer since files from the 
 #          beginning are overwritten)
+#    duratioin: number of seconds that a file will be kept before rotating
 # -w writing the raw packets to a file rather than to stdout
 
-/usr/bin/tshark  -b filesize:${MAXFILESIZE}000 -b files:$MAXFILENUM -w \
-  "/data/$FILENAME" $INTERFACES $FILTER
+if [ -n "$MAXFILESIZE" ];
+then
+  BUFFEROPTS="$BUFFEROPTS -b filesize:${MAXFILESIZE}000"
+fi
+
+if [ -n "$MAXFILENUM" ];
+then
+  BUFFEROPTS="$BUFFEROPTS -b files:$MAXFILENUM"
+fi
+
+if [ -n "$DURATION" ];
+then
+  BUFFEROPTS="$BUFFEROPTS -b duration:$DURATION"
+fi
+
+/usr/bin/tshark $BUFFEROPTS -w "/data/$FILENAME" $INTERFACES $FILTER
