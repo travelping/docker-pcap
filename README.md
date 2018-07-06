@@ -20,6 +20,7 @@ These options are configurable:
 | `FILTER`      |          `""` |
 | `MAXFILESIZE` |        `1000` |
 | `MAXFILENUM`  |          `10` |
+| `DURATION`    |          `""` |
 | `FILENAME`    |        `dump` |
 
 `IFACE` is the interface tshark should listen on.
@@ -31,6 +32,9 @@ be opened. The unit for this is Megabytes (1 Megabyte = 1,000,000 bytes).
 
 `MAXFILENUM` is the maximum number of files that are opened before tshark
 starts overwriting old files one by one beginning with the first one.
+
+`DURATION` is the maximum number of seconds tshark waits until it begins to 
+write into the next file.
 
 The `FILENAME` variable sets the filename that is used. The default value is 
 `dump`. A number will be attached to each file (see tshark manpage for more 
