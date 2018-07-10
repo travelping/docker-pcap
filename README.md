@@ -65,3 +65,19 @@ $PWD/dump:/data --rm -ti travelping/pcap
 
 After the packages are captured, they can be evaluated using tcpdumps `-r`
 option to read captured raw packages from a file.
+
+### Display Filters
+
+Since `tshark` does not allow for wireshark like filters to be applied to a 
+capture stream. And the functionality of piping to a `tshark` and than applying 
+a read filter is also broken (see 
+https://bugs.wireshark.org/bugzilla/show_bug.cgi?id=2234), applying wireshark 
+like filters needs to be done in a second filter pass.
+
+This can be done with a local installed instance of `tshark` or using the 
+`tshark` provided by the docker-pcap container:
+
+```
+-> % docker run --net=host -v $PWD/dump:/data --rm -ti travelping/pcap /bin/sh
+/ # tshark -r /path/to/file -Y <filter>
+```
