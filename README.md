@@ -1,7 +1,7 @@
 # TSHARK in a container
 
-This container starts a tshark and safes the captured packages in files. IT 
-uses a ring buffer with a default file size of 1 Gigabyte and a maximum number 
+This container starts a tshark and safes the captured packages in files. IT
+uses a ring buffer with a default file size of 1 Gigabyte and a maximum number
 of files of 10. All files are stored in the `/data` directory.
 
 ## Usage
@@ -22,6 +22,7 @@ These options are configurable:
 | `MAXFILENUM`  |          `10` |
 | `DURATION`    |          `""` |
 | `FILENAME`    |        `dump` |
+| `INTERVAL`    |          `30` |
 
 `IFACE` is the interface tshark should listen on.
 
@@ -33,24 +34,26 @@ be opened. The unit for this is Megabytes (1 Megabyte = 1,000,000 bytes).
 `MAXFILENUM` is the maximum number of files that are opened before tshark
 starts overwriting old files one by one beginning with the first one.
 
-`DURATION` is the maximum number of seconds tshark waits until it begins to 
+`DURATION` is the maximum number of seconds tshark waits until it begins to
 write into the next file.
 
-The `FILENAME` variable sets the filename that is used. The default value is 
-`dump`. A number will be attached to each file (see tshark manpage for more 
-information). To dump on multiple interfaces simply add more interfaces to this 
+The `FILENAME` variable sets the filename that is used. The default value is
+`dump`. A number will be attached to each file (see tshark manpage for more
+information). To dump on multiple interfaces simply add more interfaces to this
 variable seperated by a whitespace (e.g. "eth0 eth1").
 
 Example:
 
 ```
--> % ls -1 dump 
+-> % ls -1 dump
 dump_00164_20180622110637
 dump_00165_20180622110638
 dump_00166_20180622110639
 dump_00167_20180622110640
 dump_00168_20180622110640
 ```
+
+`INTERVAl` uses Wireshark's `Capture output: -b` option. It allows to run "multiple files" mode, which enables to switch between capture files if a condition is met. The value defined in `interval` will execute a switch to the next capture file whenever the time is an *exact multiple* of `value` seconds.
 
 To extract the files, containing the captured packages, from the container to
 the host, the simplest way is to mount a host folder over the data directory
@@ -68,13 +71,13 @@ option to read captured raw packages from a file.
 
 ### Display Filters
 
-Since `tshark` does not allow for wireshark like filters to be applied to a 
-capture stream. And the functionality of piping to a `tshark` and than applying 
-a read filter is also broken (see 
-https://bugs.wireshark.org/bugzilla/show_bug.cgi?id=2234), applying wireshark 
+Since `tshark` does not allow for wireshark like filters to be applied to a
+capture stream. And the functionality of piping to a `tshark` and than applying
+a read filter is also broken (see
+https://bugs.wireshark.org/bugzilla/show_bug.cgi?id=2234), applying wireshark
 like filters needs to be done in a second filter pass.
 
-This can be done with a local installed instance of `tshark` or using the 
+This can be done with a local installed instance of `tshark` or using the
 `tshark` provided by the docker-pcap container:
 
 ```
