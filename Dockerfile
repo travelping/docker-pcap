@@ -1,6 +1,6 @@
 FROM alpine:edge
 
-RUN apk add --no-cache tshark=2.6.2-r0 coreutils
+RUN apk add --no-cache tshark coreutils
 
 ADD run.sh /run.sh
 

@@ -41,4 +41,4 @@ then
   BUFFEROPTS="$BUFFEROPTS -b interval:$INTERVAL"
 fi
 
-/usr/bin/tshark $BUFFEROPTS -w "/data/$FILENAME" $FILTER $INTERFACES
+/usr/bin/tshark $BUFFEROPTS -w "/data/$FILENAME" $INTERFACES $FILTER
