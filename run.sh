@@ -35,4 +35,4 @@ then
   BUFFEROPTS="$BUFFEROPTS -b duration:$DURATION"
 fi
 
-/usr/bin/tshark $BUFFEROPTS -w "/data/$FILENAME" $FILTER $INTERFACES 
+/usr/bin/tshark $BUFFEROPTS -w "/data/$FILENAME" -f "$FILTER" $INTERFACES 
