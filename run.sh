@@ -35,4 +35,9 @@ then
   BUFFEROPTS="$BUFFEROPTS -b duration:$DURATION"
 fi
 
+if [ -n "$INTERVAL" ];
+then
+  BUFFEROPTS="$BUFFEROPTS -b interval:$INTERVAL"
+fi
+
 /usr/bin/tshark $BUFFEROPTS -w "/data/$FILENAME" $INTERFACES $FILTER

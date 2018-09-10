@@ -22,6 +22,7 @@ These options are configurable:
 | `MAXFILENUM`  |          `10` |
 | `DURATION`    |          `""` |
 | `FILENAME`    |        `dump` |
+| `INTERVAL`    |          `30` |
 
 `IFACE` is the interface tshark should listen on.
 
@@ -51,6 +52,8 @@ dump_00166_20180622110639
 dump_00167_20180622110640
 dump_00168_20180622110640
 ```
+
+`INTERVAl` uses Wireshark's `Capture output: -b` option. It allows to run "multiple files" mode, which enables to switch between capture files if a condition is met. The value defined in `interval` will execute a switch to the next capture file whenever the time is an *exact multiple* of `value` seconds.
 
 To extract the files, containing the captured packages, from the container to
 the host, the simplest way is to mount a host folder over the data directory
