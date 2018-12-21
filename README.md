@@ -23,7 +23,7 @@ These options are configurable:
 | `DURATION`    |          `""` |
 | `FILENAME`    |        `dump` |
 
-`IFACE` is the interface tshark should listen on.
+`IFACE` space-separated list of interfaces tshark should listen on.
 
 `FILTER` contains the filter rules that are passed to tshark.
 
