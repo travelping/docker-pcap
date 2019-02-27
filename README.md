@@ -21,8 +21,8 @@ These options are configurable:
 | `MAXFILESIZE` |        `1000` |
 | `MAXFILENUM`  |          `10` |
 | `DURATION`    |          `""` |
-| `FILENAME`    |   `dump.pcap` |
-| `FORMAT`      |        `pcap` |
+| `FILENAME`    |        `dump` |
+| `FORMAT`      |        `    ` |
 
 `IFACE` is the interface tshark should listen on.
 
@@ -43,7 +43,7 @@ information). To dump on multiple interfaces simply add more interfaces to this
 variable seperated by a whitespace (e.g. "eth0 eth1").
 
 The `FORMAT` variable sets the format of the written file. Use the variable `dump.pcap` as
-the `FILENAME` option to use the common pcap-format. Other formats are described in
+the `FILENAME` option and `pcap` for `FILENAME` to use the common pcap-format. Other formats are described in
 the [official documentation](https://www.wireshark.org/docs/man-pages/tshark.html).
 
 Example:
