@@ -8,7 +8,8 @@ ENV FILTER=""
 ENV IFACE="any"
 ENV MAXFILESIZE="1000"
 ENV MAXFILENUM="10"
-ENV FILENAME="dump"
+ENV FILENAME="dump.pcap"
+ENV FORMAT="pcap"
 
 USER root:root
 
