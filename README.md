@@ -22,6 +22,7 @@ These options are configurable:
 | `MAXFILENUM`  |          `10` |
 | `DURATION`    |          `""` |
 | `FILENAME`    |        `dump` |
+| `FORMAT`      |      `pcapng` |
 
 `IFACE` is the interface tshark should listen on.
 
@@ -40,6 +41,10 @@ The `FILENAME` variable sets the filename that is used. The default value is
 `dump`. A number will be attached to each file (see tshark manpage for more 
 information). To dump on multiple interfaces simply add more interfaces to this 
 variable seperated by a whitespace (e.g. "eth0 eth1").
+
+`FORMAT` sets the file-format of the written trace. Note that when you're setting
+the `FORMAT` to `pcap` for example, the `FILENAME` has to be changed to `dump.pcap`.
+Other formats are described in the [official tshark documentation](https://www.wireshark.org/docs/man-pages/tshark.html).
 
 Example:
 

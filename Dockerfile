@@ -9,6 +9,7 @@ ENV IFACE="any"
 ENV MAXFILESIZE="1000"
 ENV MAXFILENUM="10"
 ENV FILENAME="dump"
+ENV FORMAT="pcapng"
 
 USER root:root
 
