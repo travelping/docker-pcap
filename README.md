@@ -22,7 +22,7 @@ These options are configurable:
 | `MAXFILENUM`  |          `10` |
 | `DURATION`    |          `""` |
 | `FILENAME`    |        `dump` |
-| `FORMAT`      |        `    ` |
+| `FORMAT`      |      `pcapng` |
 
 `IFACE` is the interface tshark should listen on.
 
