@@ -1,6 +1,14 @@
+## v1.2.0- Feature:
+
+- Added snaplength feature
+
 ## v1.1.0- Feature:
 
-- Added formatting option
+- Reworked (experimental) formatting option
+
+## v1.0.2- (Experimental) Feature:
+
+- Added (experimental) formatting option
 
 ## v1.0.1
 
