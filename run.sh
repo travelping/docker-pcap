@@ -35,6 +35,11 @@ then
   BUFFEROPTS="$BUFFEROPTS -b duration:$DURATION"
 fi
 
+if [ -n "$INTERVAL" ];
+then
+  BUFFEROPTS="$BUFFEROPTS -b interval:$INTERVAL"
+fi
+
 if [ -n "$SNAPLENGTH" ];
 then
   SNAPLENGTH="-s $SNAPLENGTH"

@@ -1,3 +1,7 @@
+## v1.2.1- Feature:
+
+- Added interval-option to tshark ring-buffer.
+
 ## v1.2.0- Feature:
 
 - Added snaplength feature
