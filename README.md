@@ -38,7 +38,7 @@ starts overwriting old files one by one beginning with the first one.
 `DURATION` is the maximum number of seconds tshark waits until it begins to
 write into the next file.
 
-`INTERVAl` uses Wireshark's `Capture output: -b` option. It allows to run
+`INTERVAL` uses Wireshark's `Capture output: -b` option. It allows to run
 "multiple files" mode, which enables to switch between capture files if a
 condition is met. The value defined in `interval` will execute a switch to
 the next capture file whenever the time is an *exact multiple* of `value` seconds.
