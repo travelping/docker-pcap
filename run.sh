@@ -35,4 +35,9 @@ then
   BUFFEROPTS="$BUFFEROPTS -b duration:$DURATION"
 fi
 
-/usr/bin/tshark $BUFFEROPTS -w "/data/$FILENAME" -f "$FILTER" $INTERFACES -F $FORMAT
+if [ -n "$SNAPLENGTH" ];
+then
+  SNAPLENGTH="-s $SNAPLENGTH"
+fi
+
+/usr/bin/tshark $BUFFEROPTS -w "/data/$FILENAME" -f "$FILTER" $INTERFACES -F $FORMAT $SNAPLENGTH

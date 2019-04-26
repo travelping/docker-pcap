@@ -1,4 +1,4 @@
-FROM alpine
+FROM alpine:3.9
 
 RUN apk add --no-cache tshark coreutils
 
@@ -10,6 +10,7 @@ ENV MAXFILESIZE="1000"
 ENV MAXFILENUM="10"
 ENV FILENAME="dump"
 ENV FORMAT="pcapng"
+ENV SNAPLENGTH=""
 
 USER root:root
 
