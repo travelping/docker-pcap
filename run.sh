@@ -7,7 +7,6 @@ chown root:root /data
 INTERFACE=""
 BUFFEROPTS=""
 
-
 for INTERFACE in $IFACE;
 do
   INTERFACES="$INTERFACES -i $INTERFACE"
