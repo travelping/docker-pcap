@@ -7,6 +7,7 @@ chown root:root /data
 INTERFACE=""
 BUFFEROPTS=""
 
+
 for INTERFACE in $IFACE;
 do
   INTERFACES="$INTERFACES -i $INTERFACE"
@@ -36,6 +37,14 @@ then
 fi
 
 if [ -n "$INTERVAL" ];
+<<<<<<< Updated upstream
+=======
+then
+  BUFFEROPTS="$BUFFEROPTS -b interval:$INTERVAL"
+fi
+
+if [ -n "$SNAPLENGTH" ];
+>>>>>>> Stashed changes
 then
   BUFFEROPTS="$BUFFEROPTS -b interval:$INTERVAL"
 fi
