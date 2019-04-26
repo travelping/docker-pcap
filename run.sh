@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# FIX: since tshark wont write to a directory that is not owned by the user 
+# FIX: since tshark wont write to a directory that is not owned by the user
 # executing the command
 chown root:root /data
 
@@ -14,9 +14,9 @@ do
 done
 
 # -b filesize:
-#          max file size (creates new file counting up, unit 1 = 1,000 
+#          max file size (creates new file counting up, unit 1 = 1,000
 #          bytes))
-#    files: max number of created files (rotating buffer since files from the 
+#    files: max number of created files (rotating buffer since files from the
 #          beginning are overwritten)
 #    duratioin: number of seconds that a file will be kept before rotating
 # -w writing the raw packets to a file rather than to stdout
@@ -37,16 +37,13 @@ then
 fi
 
 if [ -n "$INTERVAL" ];
-<<<<<<< Updated upstream
-=======
 then
   BUFFEROPTS="$BUFFEROPTS -b interval:$INTERVAL"
 fi
 
 if [ -n "$SNAPLENGTH" ];
->>>>>>> Stashed changes
 then
-  BUFFEROPTS="$BUFFEROPTS -b interval:$INTERVAL"
+  SNAPLENGTH="-s $SNAPLENGTH"
 fi
 
-/usr/bin/tshark $BUFFEROPTS -w "/data/$FILENAME" $INTERFACES $FILTER
+/usr/bin/tshark $BUFFEROPTS -w "/data/$FILENAME" -f "$FILTER" $INTERFACES -F $FORMAT $SNAPLENGTH
