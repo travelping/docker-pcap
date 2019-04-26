@@ -1,6 +1,6 @@
 # TSHARK in a container
 
-This container starts a tshark and safes the captured packages in files. IT 
+This container starts a tshark and safes the captured packages in files. It 
 uses a ring buffer with a default file size of 1 Gigabyte and a maximum number 
 of files of 10. All files are stored in the `/data` directory.
 
@@ -24,7 +24,7 @@ These options are configurable:
 | `FILENAME`    |        `dump` |
 | `FORMAT`      |      `pcapng` |
 
-`IFACE` is the interface tshark should listen on.
+`IFACE` space-separated list of interfaces tshark should listen on.
 
 `FILTER` contains the filter rules that are passed to tshark.
 
