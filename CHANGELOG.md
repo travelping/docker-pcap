@@ -1,3 +1,11 @@
+## NEXT- Feature:
+
+- Use tshark-3.4.9
+- Use alpine:3.15 as base image
+- Change the defaults for
+  * FILTER to "icmp" (prevents unintentional capture of all traffic)
+  * DURATION to 600 seconds (prevents unintentional infinity captures)
+
 ## v1.2.1- Feature:
 
 - Added interval-option to tshark ring-buffer.
