@@ -45,8 +45,7 @@ next capture file whenever the time is an *exact multiple* of `value` seconds.
 
 The `FILENAME` variable sets the filename that is used. The default value is
 `dump`. A number will be attached to each file (see tshark manpage for more
-information). To dump on multiple interfaces simply add more
-interfaces to this variable seperated by a whitespace (e.g. "eth0 eth1").
+information).
 
 `FORMAT` sets the file-format of the written trace. Note that when you're
 setting the `FORMAT` to `pcap` for example, the `FILENAME` has to be changed
