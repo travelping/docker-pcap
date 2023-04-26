@@ -1,8 +1,7 @@
-FROM alpine:3.15
+FROM alpine:3.17
 
-RUN apk add --no-cache \
-        coreutils \
-        'tshark=3.4.9-r0'
+RUN apk update && apk upgrade --no-cache && \
+        apk add --no-cache coreutils tshark=4.0.1-r0
 
 ADD run.sh /run.sh
 
