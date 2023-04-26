@@ -1,7 +1,7 @@
-## NEXT- Feature:
+## v1.3.0
 
-- Use tshark-3.4.9
-- Use alpine:3.15 as base image
+- Use alpine:3.17 as a base image
+- Use tshark in version `4.0.1-r0`
 - Change the defaults for
   * FILTER to "icmp" (prevents unintentional capture of all traffic)
   * DURATION to 600 seconds (prevents unintentional infinity captures)
