@@ -5,6 +5,7 @@
 - Change the defaults for
   * FILTER to "icmp" (prevents unintentional capture of all traffic)
   * DURATION to 600 seconds (prevents unintentional infinity captures)
+- Do not set INTERVAL and DURATION at the same time, prefer INTERVAL if both set
 
 ## v1.2.1- Feature:
 
