@@ -30,7 +30,8 @@ then
   BUFFEROPTS="$BUFFEROPTS -b files:$MAXFILENUM"
 fi
 
-if [ -n "$DURATION" ];
+# interval and duration cannot be set at the same time
+if [ -n "$DURATION" ] && [ -z "$INTERVAL" ];
 then
   BUFFEROPTS="$BUFFEROPTS -b duration:$DURATION"
 fi
