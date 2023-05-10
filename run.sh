@@ -1,4 +1,5 @@
 #!/bin/sh
+set -x
 
 # FIX: since tshark wont write to a directory that is not owned by the user
 # executing the command
@@ -46,4 +47,10 @@ then
   SNAPLENGTH="-s $SNAPLENGTH"
 fi
 
-/usr/bin/tshark $BUFFEROPTS -w "/data/$FILENAME" -f "$FILTER" $INTERFACES -F $FORMAT $SNAPLENGTH
+PCAPNG=""
+if [ "$FORMAT" = "pcapng" ];
+then
+  PCAPNG="-n"
+fi
+
+/usr/bin/dumpcap $PCAPNG $BUFFEROPTS -w "/data/$FILENAME" -f "$FILTER" $INTERFACES $SNAPLENGTH
