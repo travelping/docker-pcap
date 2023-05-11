@@ -7,7 +7,7 @@ maximum number of files of 10. All files are stored in the `/data` directory.
 ## Usage
 
 For the container to be able to capture packets on any interface of the host
-system `--net=host` needs to be passed to the docker run command.
+system `--net=host --cap-add NET_ADMIN` needs to be passed to the docker run command.
 
 Environment variables can be overwritten using the `-e` option of the `docker
 run` command.
@@ -25,17 +25,17 @@ These options are configurable:
 | `FORMAT`      |      `pcapng` |
 | `SNAPLENGTH`  | <deactivated> |
 
-`IFACE` space-separated list of interfaces tshark should listen on.
+`IFACE` space-separated list of interfaces dumpcap should listen on.
 
-`FILTER` contains the filter rules that are passed to tshark.
+`FILTER` contains the filter rules that are passed to dumpcap.
 
 `MAXFILESIZE` is the maximum size that a file can grow to before a new file
 will be opened. The unit for this is Megabytes (1 Megabyte = 1,000,000 bytes).
 
-`MAXFILENUM` is the maximum number of files that are opened before tshark
+`MAXFILENUM` is the maximum number of files that are opened before dumpcap
 starts overwriting old files one by one beginning with the first one.
 
-`DURATION` is the maximum number of seconds tshark waits until it begins to
+`DURATION` is the maximum number of seconds dumpcap waits until it begins to
 write into the next file.
 
 `INTERVAL` uses Wireshark's `Capture output: -b` option. It allows to run
@@ -44,13 +44,12 @@ condition is met. The value defined in `interval` will execute a switch to the
 next capture file whenever the time is an *exact multiple* of `value` seconds.
 
 The `FILENAME` variable sets the filename that is used. The default value is
-`dump`. A number will be attached to each file (see tshark manpage for more
+`dump`. A number will be attached to each file (see [dumpcap manpage][1] for more
 information).
 
 `FORMAT` sets the file-format of the written trace. Note that when you're
 setting the `FORMAT` to `pcap` for example, the `FILENAME` has to be changed
-to `dump.pcap`.  Other formats are described in the [official tshark
-documentation][1].
+to `dump.pcap`.  Other supported format is `pcapng`.
 
 `SNAPLENGTH` is the amount of data for each frame that is actually captured by
 the network capturing tool and stored into the CaptureFile. This is sometimes
@@ -72,7 +71,7 @@ using the `-v` option of the `docker run` command.
 
 **Example:**
 
-    $> docker run --net=host -e IFACE="enp3s0f1" -e FILTER="tcp port 80" -v \
+    $> docker run --cap-add NET_ADMIN --net=host -e IFACE="enp3s0f1" -e FILTER="tcp port 80" -v \
         $PWD/dump:/data --rm -ti travelping/pcap
 
 After the packages are captured, they can be evaluated using tcpdumps `-r`
@@ -92,6 +91,5 @@ This can be done with a local installed instance of `tshark` or using the
     / # tshark -r /path/to/file -Y <filter>
 
 
-
-[1]: https://www.wireshark.org/docs/man-pages/tshark.html
+[1]: https://www.wireshark.org/docs/man-pages/dumpcap.html
 [2]: https://bugs.wireshark.org/bugzilla/show_bug.cgi?id=2234
