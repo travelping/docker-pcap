@@ -48,9 +48,9 @@ then
 fi
 
 PCAPNG=""
-if [ "$FORMAT" = "pcapng" ];
+if [ "$FORMAT" = "pcap" ];
 then
-  PCAPNG="-n"
+  PCAPNG="-P"
 fi
 
 /usr/bin/dumpcap $PCAPNG $BUFFEROPTS -w "/data/$FILENAME" -f "$FILTER" $INTERFACES $SNAPLENGTH
