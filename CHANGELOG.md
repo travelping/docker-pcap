@@ -1,3 +1,7 @@
+## v1.3.1
+
+- Use `pcap` as default file format
+
 ## v1.3.0
 
 - Use alpine:3.17 as a base image
