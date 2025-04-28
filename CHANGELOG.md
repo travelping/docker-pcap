@@ -1,3 +1,8 @@
+## v1.3.2
+
+- Use alpine:3.21 as base image
+- Use tshark in version `4.4.2-r0`
+
 ## v1.3.1
 
 - Use `pcap` as default file format
