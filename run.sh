@@ -53,4 +53,10 @@ then
   PCAPNG="-P"
 fi
 
-/usr/bin/dumpcap $PCAPNG $BUFFEROPTS -w "/data/$FILENAME" -f "$FILTER" $INTERFACES $SNAPLENGTH
+PMODE="--no-promiscuous-mode"
+if [ "$PROMISCUOUS_MODE" = "yes" ];
+then
+  PMODE=""
+fi
+
+/usr/bin/dumpcap $PMODE $PCAPNG $BUFFEROPTS -w "/data/$FILENAME" -f "$FILTER" $INTERFACES $SNAPLENGTH
