@@ -56,6 +56,10 @@ the network capturing tool and stored into the CaptureFile. This is sometimes
 called PacketSlicing.  By default this is turned off so large packets are not
 truncated by accident.
 
+`PROMISCUOUS_MODE` defines if the given interface(s) are put into promiscous
+mode or not. If set to `"yes"`, promiscous mode is used for the interfaces.
+Default is: "no", interfaces are _not_ put into promiscous mode.
+
 Example:
 
     $> ls -1 dump
