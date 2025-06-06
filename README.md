@@ -65,7 +65,7 @@ Example:
     dump_00167_20180622110640
     dump_00168_20180622110640
 
-To extract the files, containing the captured packages, from the container to
+To extract the files, containing the captured packets, from the container to
 the host, the simplest way is to mount a host folder over the data directory
 using the `-v` option of the `docker run` command.
 
@@ -74,8 +74,8 @@ using the `-v` option of the `docker run` command.
     $> docker run --cap-add NET_RAW --net=host -e IFACE="enp3s0f1" -e FILTER="tcp port 80" -v \
         $PWD/dump:/data --rm -ti travelping/pcap
 
-After the packages are captured, they can be evaluated using tcpdumps `-r`
-option to read captured raw packages from a file.
+After the packets are captured, they can be evaluated using tcpdumps `-r`
+option to read captured raw packets from a file.
 
 ### Display Filters
 
