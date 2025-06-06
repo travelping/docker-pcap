@@ -65,7 +65,7 @@ also as `root` (e.g., `docker run --user root:root ...`).
 
 ## Examples
 
-To extract the files, containing the captured packages, from the container to
+To extract the files, containing the captured packets, from the container to
 the host, the simplest way is to mount a host folder over the data directory
 using the `-v` option of the `docker run` command.
 
@@ -76,22 +76,19 @@ using the `-v` option of the `docker run` command.
         -e FILTER="tcp port 80"                     \
         -v $PWD/dump:/data --rm -ti travelping/pcap
 
-After the packages are captured, they can be evaluated using tcpdumps `-r`
-option to read captured raw packages from a file.
+After the packets are captured, they can be evaluated using tcpdumps `-r`
+option to read captured raw packets from a file.
 
 ### Display Filters
 
-`tshark` does not allow for wireshark like filters to be applied to a capture
+`dumpcap` does not allow for wireshark like filters to be applied to a capture
 stream. In addition, the functionality of piping to `tshark` and than applying
 a read filter is also [broken][2]. As a result, applying wireshark like
 filters must be done in a second filter pass.
 
-This can be done with a local installed instance of `tshark` or using the
-`tshark` provided by the docker-pcap container:
+This can be done with a local installed instance of `tshark`:
 
-    $> docker run --net=host -v $PWD/dump:/data --rm -ti travelping/pcap /bin/sh
-    / # tshark -r /path/to/file -Y <filter>
-
+    $> tshark -r /path/to/file -Y <filter>
 
 [1]: https://www.wireshark.org/docs/man-pages/dumpcap.html
 [2]: https://bugs.wireshark.org/bugzilla/show_bug.cgi?id=2234
