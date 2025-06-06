@@ -1,7 +1,8 @@
 FROM alpine:3.22
 
 RUN apk add -U --no-cache coreutils libcap-setcap tshark=4.4.6-r0 && \
-    setcap cap_net_raw+eip /usr/bin/dumpcap
+    setcap cap_net_raw+eip /usr/bin/dumpcap && \
+    adduser pcap -u 65532 -h /dev/null -G wireshark -D -H
 
 ADD run.sh /run.sh
 
@@ -14,8 +15,8 @@ ENV FILENAME="dump"
 ENV FORMAT="pcapng"
 ENV SNAPLENGTH=""
 
-USER root:root
+RUN mkdir /data && chown 65532:101 /data
 
-RUN mkdir /data
+USER 65532:101
 
 CMD [ "/bin/sh", "-c", "/run.sh" ]
