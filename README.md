@@ -7,7 +7,7 @@ maximum number of files of 10. All files are stored in the `/data` directory.
 ## Usage
 
 For the container to be able to capture packets on any interface of the host
-system `--net=host --cap-add NET_ADMIN` needs to be passed to the docker run command.
+system `--net=host --cap-add NET_RAW` needs to be passed to the docker run command.
 
 Environment variables can be overwritten using the `-e` option of the `docker
 run` command.
@@ -71,7 +71,7 @@ using the `-v` option of the `docker run` command.
 
 **Example:**
 
-    $> docker run --cap-add NET_ADMIN --net=host -e IFACE="enp3s0f1" -e FILTER="tcp port 80" -v \
+    $> docker run --cap-add NET_RAW --net=host -e IFACE="enp3s0f1" -e FILTER="tcp port 80" -v \
         $PWD/dump:/data --rm -ti travelping/pcap
 
 After the packages are captured, they can be evaluated using tcpdumps `-r`
