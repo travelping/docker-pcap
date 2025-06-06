@@ -7,7 +7,7 @@ maximum number of files of 10. All files are stored in the `/data` directory.
 ## Usage
 
 For the container to be able to capture packets on any interface of the host
-system `--net=host --cap-add NET_ADMIN` needs to be passed to the docker run command.
+system `--net=host --cap-add NET_RAW` needs to be passed to the docker run command.
 
 Environment variables can be overwritten using the `-e` option of the `docker
 run` command.
@@ -59,15 +59,11 @@ truncated by accident.
 `PROMISCUOUS_MODE` defines if the given interface(s) are put into promiscous
 mode or not. If set to `"yes"`, promiscous mode is used for the interfaces.
 Default is: "no", interfaces are _not_ put into promiscous mode.
+In case of `PROMISCUOUS_MODE` is required, the container needs also to run
+with `NET_ADMIN` capabilities (e.g., `docker run --cap-add NET_ADMIN ...`) and
+also as `root` (e.g., `docker run --user root:root ...`).
 
-Example:
-
-    $> ls -1 dump
-    dump_00164_20180622110637
-    dump_00165_20180622110638
-    dump_00166_20180622110639
-    dump_00167_20180622110640
-    dump_00168_20180622110640
+## Examples
 
 To extract the files, containing the captured packages, from the container to
 the host, the simplest way is to mount a host folder over the data directory
@@ -75,8 +71,10 @@ using the `-v` option of the `docker run` command.
 
 **Example:**
 
-    $> docker run --cap-add NET_ADMIN --net=host -e IFACE="enp3s0f1" -e FILTER="tcp port 80" -v \
-        $PWD/dump:/data --rm -ti travelping/pcap
+    $> docker run --cap-add NET_RAW --net=host      \
+        -e IFACE="enp3s0f1"                         \
+        -e FILTER="tcp port 80"                     \
+        -v $PWD/dump:/data --rm -ti travelping/pcap
 
 After the packages are captured, they can be evaluated using tcpdumps `-r`
 option to read captured raw packages from a file.

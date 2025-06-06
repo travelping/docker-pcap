@@ -1,7 +1,7 @@
 FROM alpine:3.22
 
-RUN apk update && apk upgrade --no-cache && \
-    apk add --no-cache coreutils tshark=4.4.6-r0
+RUN apk add -U --no-cache coreutils libcap-setcap tshark=4.4.6-r0 && \
+    setcap cap_net_raw+eip /usr/bin/dumpcap
 
 ADD run.sh /run.sh
 
