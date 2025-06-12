@@ -1,3 +1,13 @@
+## v1.4.0
+
+- Use tshark in version `4.4.6-r0`
+- Use alpine:3.22 as base image
+- Change the defaults for
+  * Run as user 65532, group 101 ("wireshark")
+  * Deactivated promiscous mode
+- Add option to use environment variable `PROMISCUOUS_MODE=yes` to
+  capture in promiscous mode
+
 ## v1.3.2
 
 - Use alpine:3.21 as base image
