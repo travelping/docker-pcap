@@ -1,6 +1,6 @@
-FROM alpine:3.22
+FROM alpine:3.22.1
 
-RUN apk add -U --no-cache coreutils libcap-setcap tshark=4.4.6-r0 && \
+RUN apk add -U --no-cache coreutils libcap-setcap tshark=4.4.7-r0 && \
     setcap cap_net_raw+eip /usr/bin/dumpcap && \
     adduser pcap -u 65532 -h /dev/null -G wireshark -D -H
 
