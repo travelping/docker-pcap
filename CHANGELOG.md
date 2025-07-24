@@ -1,3 +1,8 @@
+## v1.4.1
+
+- Use tshark in version `4.4.7-r0`
+- Use alpine:3.22.1 as base image
+
 ## v1.4.0
 
 - Use tshark in version `4.4.6-r0`
