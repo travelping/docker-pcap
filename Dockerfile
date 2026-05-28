@@ -1,6 +1,6 @@
-FROM alpine:3.23.3
+FROM alpine:3.23.4
 
-ARG VERSION=1.4.2
+ARG VERSION=1.4.3
 
 ## https://github.com/opencontainers/image-spec/blob/v1.1.1/annotations.md
 LABEL org.opencontainers.image.url="https://github.com/travelping/docker-pcap"
@@ -13,7 +13,7 @@ LABEL org.opencontainers.image.description="pcap - capture network traffic"
 RUN apk add -U --no-cache \
     coreutils \
     libcap-setcap \
-    tshark=4.6.1-r0 && \
+    tshark=4.6.5-r0 && \
     setcap cap_net_raw+eip /usr/bin/dumpcap && \
     adduser pcap -u 65532 -h /dev/null -G wireshark -D -H
 
