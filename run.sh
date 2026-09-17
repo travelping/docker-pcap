@@ -60,4 +60,12 @@ then
   PMODE=""
 fi
 
-/usr/bin/dumpcap $PMODE $PCAPNG $BUFFEROPTS -w "/data/$FILENAME" -f "$FILTER" $INTERFACES $SNAPLENGTH
+# gzip and lz4 are the formats dumpcap writes; the matching suffix is appended
+# to the file name by dumpcap itself. Empty means uncompressed.
+COMPRESSOPTS=""
+if [ -n "$COMPRESS" ];
+then
+  COMPRESSOPTS="--compress $COMPRESS"
+fi
+
+/usr/bin/dumpcap $PMODE $PCAPNG $COMPRESSOPTS $BUFFEROPTS -w "/data/$FILENAME" -f "$FILTER" $INTERFACES $SNAPLENGTH
