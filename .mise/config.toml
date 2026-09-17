@@ -1,0 +1,350 @@
+[tools]
+grype = "0.118.0"
+jq = "1.8.2"
+pinact = "5.0.0"
+trivy = "0.74.0"
+
+[tasks."image:build"]
+alias = "container-image"
+description = "Build the container image"
+usage = '''
+arg "<image>" default="localhost/docker-pcap:latest" help="image ref to build, ignored when TAGS is set"
+arg "<platforms>" default="host" help="comma-separated build platforms, or 'host'"
+'''
+# The release workflow uses the same build task. Its release-specific settings
+# are supplied through the environment instead of additional positional
+# arguments:
+#
+#   TAGS       newline- or space-separated image refs, as docker/metadata-action
+#              emits them; replaces the <image> argument
+#   PLATFORMS  comma-separated build platforms; replaces the <platforms> argument
+#   PUSH       'true' pushes the result instead of leaving it in the local store
+#   LOAD       'true' loads the result into the local image store, which a
+#              docker-container builder does not do by itself
+#   VERSION    value for the Dockerfile's VERSION build-arg, so the OCI labels
+#              name the release being built instead of the Dockerfile's default
+run = '''
+#!/usr/bin/env bash
+set -o errexit
+set -o pipefail
+
+cd "$MISE_PROJECT_ROOT"
+
+cri="${CRI:-podman}"
+
+platforms="${PLATFORMS:-$usage_platforms}"
+if [ "$platforms" = "host" ]; then
+    case "$(uname -m)" in
+        x86_64)          platforms="linux/amd64" ;;
+        aarch64|arm64)   platforms="linux/arm64" ;;
+        *) echo "unsupported host arch $(uname -m); pass platforms explicitly" >&2; exit 1 ;;
+    esac
+fi
+
+multi=false
+case "$platforms" in *,*) multi=true ;; esac
+
+# podman-build(1): "When more than one platform is specified, the --manifest
+# option is used instead of the --tag option." It puts the per-platform images
+# into a local manifest list of that name, which `podman manifest push` then
+# publishes. docker buildx tags multi-platform builds as usual.
+name_flag="--tag"
+if [ "$multi" = true ] && [ "$(basename "$cri")" = podman ]; then
+    name_flag="--manifest"
+fi
+
+args=()
+for tag in ${TAGS:-$usage_image}; do
+    args+=("$name_flag" "$tag")
+done
+
+# A multi-platform build cannot land in the local image store; without --push
+# its only output is the build cache, which still proves every platform builds.
+if [ "${PUSH:-}" = "true" ]; then
+    if [ "$(basename "$cri")" = podman ]; then
+        echo "podman build has no --push; build into a manifest and run" >&2
+        echo "'podman manifest push', or set CRI=docker" >&2
+        exit 1
+    fi
+    args+=(--push)
+fi
+
+# Only needed under a docker-container builder, which keeps its result in the
+# cache -- image:test looks for the image in the local store. The plain docker
+# driver and podman put it there anyway, so this stays opt-in rather than
+# passing a flag podman may not know.
+if [ "${LOAD:-}" = "true" ]; then
+    if [ "${PUSH:-}" = "true" ]; then
+        echo "PUSH and LOAD are mutually exclusive: buildx takes one exporter" >&2
+        exit 1
+    fi
+    if [ "$multi" = true ]; then
+        echo "LOAD cannot be used with several platforms: the local image store" >&2
+        echo "holds one manifest per tag, not an index" >&2
+        exit 1
+    fi
+    args+=(--load)
+fi
+
+# Without this the labels carry the Dockerfile's ARG default, which is only
+# correct as long as someone remembers to bump it before tagging.
+if [ -n "${VERSION:-}" ]; then
+    args+=(--build-arg "VERSION=$VERSION")
+fi
+
+# The Dockerfile stays the single source of truth for the base image and the
+# tshark pin; nothing here overrides them.
+exec "$cri" buildx build \
+    --platform "$platforms" \
+    -f Dockerfile \
+    "${args[@]}" .
+'''
+
+[tasks."image:check-updates"]
+alias = "check-updates"
+description = "Check whether the alpine branch ships a newer tshark than the Dockerfile pins"
+run = '''
+#!/usr/bin/env bash
+set -o errexit
+set -o pipefail
+
+cd "$MISE_PROJECT_ROOT"
+
+# A maintainer's helper: does the alpine branch ship a newer tshark than the
+# Dockerfile pins? Nothing more. It reads the same APKINDEX apk would resolve
+# from, for both release arches.
+alpine=$(sed -nE 's/^FROM alpine:(.*)$/\1/p' Dockerfile | head -1)
+tshark=$(sed -nE 's/^[[:space:]]*tshark=([^[:space:]]+).*$/\1/p' Dockerfile | head -1)
+branch="v${alpine%.*}"
+
+echo "Dockerfile: alpine:$alpine, tshark=$tshark (branch $branch)"
+
+rc=0
+for arch in x86_64 aarch64; do
+    # The release workflow builds linux/amd64 and linux/arm64, so both arches
+    # have to carry the pinned revision -- they do drift apart for a few hours
+    # after a rebuild.
+    #
+    # awk reads the index to the end instead of exiting on the first match: an
+    # early exit closes the pipe, and the SIGPIPE it raises in tar would fail
+    # the whole task under pipefail.
+    if ! latest=$(curl --silent --show-error --fail --location \
+        "https://dl-cdn.alpinelinux.org/alpine/$branch/community/$arch/APKINDEX.tar.gz" \
+        | tar xzO APKINDEX \
+        | awk '/^P:tshark$/ { found=1; next } found && /^V:/ { sub(/^V:/, ""); print; found=0 }')
+    then
+        latest=""
+    fi
+
+    if [ "$latest" = "$tshark" ]; then
+        echo "  $arch: ok"
+    elif [ -z "$latest" ]; then
+        echo "  $arch: no tshark in $branch/community" >&2
+        rc=1
+    else
+        echo "  $arch: $branch now ships $latest, Dockerfile pins $tshark" >&2
+        rc=1
+    fi
+done
+
+exit $rc
+'''
+
+[tasks."image:test"]
+alias = "test-image"
+description = "Smoke-test a built image: capture on loopback and check a dump appears"
+usage = '''
+arg "<image>" default="localhost/docker-pcap:latest" help="local image to test, as name[:tag]"
+'''
+run = '''
+#!/usr/bin/env bash
+set -o errexit
+set -o pipefail
+
+# NET_RAW alone is enough: the image drops to uid 65532 and dumpcap carries the
+# file capability, so this also proves the setcap in the Dockerfile survived the
+# build. NET_ADMIN is not needed -- promiscuous mode stays off by default.
+cid=$("${CRI:-podman}" run --detach --cap-add=NET_RAW \
+    --env IFACE=lo --env FILTER=icmp --env DURATION=5 --env MAXFILENUM=2 \
+    "$usage_image")
+trap '"${CRI:-podman}" rm --force "$cid" >/dev/null' EXIT
+
+sleep 5
+
+# A container that already died cannot be exec'd into, and the error for that
+# says nothing about why -- so report its log instead. The usual cause is
+# /run.sh arriving without its executable bit.
+#
+# `ps --filter` rather than `inspect --format`: mise renders task scripts as
+# Tera templates, so a Go format template -- doubled curly braces -- is parsed
+# as a Tera expression and fails before the shell ever sees it.
+if [ -z "$("${CRI:-podman}" ps --quiet --filter "id=$cid" --filter status=running)" ]; then
+    echo "container is no longer running; log:" >&2
+    "${CRI:-podman}" logs "$cid" >&2
+    exit 1
+fi
+
+if ! "${CRI:-podman}" exec "$cid" ls /data | grep -q '^dump'; then
+    echo "no capture file in /data after 5s; container log:" >&2
+    "${CRI:-podman}" logs "$cid" >&2
+    exit 1
+fi
+
+echo "image ok: dumpcap runs as $("${CRI:-podman}" exec "$cid" id -u) and writes to /data"
+'''
+
+[tasks."image:report-trivy"]
+alias = "report-trivy"
+description = "List trivy findings for a built image, most severe first"
+usage = '''
+arg "<image>" default="localhost/docker-pcap:latest" help="local image to scan, as name[:tag]"
+'''
+run = """
+tmp=$(mktemp -t docker-pcap.XXXXXX)
+trap 'rm -f "$tmp"' EXIT
+${CRI:-podman} save "$usage_image" -o "$tmp"
+trivy image --format json --input "$tmp" | jq -r '
+  {"CRITICAL":1,"HIGH":2,"MEDIUM":3,"LOW":4,"UNKNOWN":5} as $rank
+  | .Results[].Vulnerabilities[]?
+  | [ $rank[.Severity],
+      (.PkgName + "@" + .InstalledVersion),
+      .VulnerabilityID,
+      .Severity ]
+  | @tsv' | \
+  sort -t"$(printf '\\t')" -u -k2,2 -k1,1n -k3,3 | \
+  cut -f2- | \
+  column -t
+"""
+
+[tasks."image:report-grype"]
+alias = "report-grype"
+description = "List grype findings for a built image, most severe first"
+usage = '''
+arg "<image>" default="localhost/docker-pcap:latest" help="local image to scan, as name[:tag]"
+'''
+run = """
+tmp=$(mktemp -t docker-pcap.XXXXXX)
+trap 'rm -f "$tmp"' EXIT
+${CRI:-podman} save "$usage_image" -o "$tmp"
+grype "docker-archive:$tmp" -o json | jq -r '
+  {"Critical":1,"High":2,"Medium":3,"Low":4,"Negligible":5,"Unknown":6} as $rank
+  | .matches[]
+  | [ $rank[.vulnerability.severity],
+      (.artifact.name + "@" + .artifact.version),
+      .vulnerability.id,
+      (.vulnerability.severity | ascii_upcase) ]
+  | @tsv' | \
+  sort -t"$(printf '\\t')" -u -k2,2 -k1,1n -k3,3 | \
+  cut -f2- | \
+  column -t
+"""
+
+[tasks."ci:pin-actions"]
+alias = "pin-actions"
+description = "Pin all GitHub Action references to full-length commit SHAs"
+run = """
+#!/usr/bin/env bash
+set -o errexit
+set -o pipefail
+pinact run
+"""
+
+[tasks."ci:update-actions"]
+alias = "update-actions"
+description = "Update pinned GitHub Actions to the latest release older than 14 days"
+run = """
+#!/usr/bin/env bash
+set -o errexit
+set -o pipefail
+# The cooldown keeps same-day releases -- the ones most likely to be yanked or
+# hotfixed -- out of the pipeline. Skipped ones are logged as
+# 'skip release due to cooldown'.
+pinact run --update --min-age 14
+"""
+
+[tasks."ci:diff-actions"]
+alias = "diff-actions"
+description = "Show what changed upstream in the GitHub Actions repinned by ci:update-actions"
+# Literal TOML string: a """ block would consume the backslash line
+# continuations below as TOML escapes before the shell ever sees them.
+run = '''
+#!/usr/bin/env bash
+set -o errexit
+set -o pipefail
+
+# Compares the old and new commit SHAs of every action pin changed in
+# .github/workflows and prints the upstream commits and touched files.
+# Defaults to the uncommitted working tree; pass a git revision range to
+# inspect already committed changes, e.g. `mise run ci:diff-actions HEAD~1`.
+
+curl_args=(--silent --show-error --fail --header "Accept: application/vnd.github+json")
+if [[ -n "${GITHUB_TOKEN:-}" ]]; then
+    curl_args+=(--header "Authorization: Bearer ${GITHUB_TOKEN}")
+fi
+
+declare -A old_sha new_sha old_tag new_tag
+
+changes=$(git diff "${@}" -- .github/workflows)
+pins=$(grep -E '^[-+][[:space:]]*(- )?uses: ' <<< "${changes}" |
+    tr -d '"' |
+    sed -E -n 's|^(.).*uses: ([^@]+)@([0-9a-f]{40})[[:space:]]*#?[[:space:]]*(.*)$|\1 \2 \3 \4|'p |
+    sort -u || true)
+
+if [[ -z "${pins}" ]]; then
+    echo "no action pins changed"
+    exit 0
+fi
+
+while read -r sign action sha tag; do
+    if [[ "${sign}" == "-" ]]; then
+        old_sha["${action}"]="${sha}"
+        old_tag["${action}"]="${tag}"
+    else
+        new_sha["${action}"]="${sha}"
+        new_tag["${action}"]="${tag}"
+    fi
+done <<< "${pins}"
+
+for action in "${!new_sha[@]}"; do
+    old="${old_sha[${action}]:-}"
+    new="${new_sha[${action}]}"
+
+    echo "=== ${action}: ${old_tag[${action}]:-?} -> ${new_tag[${action}]}"
+    if [[ -z "${old}" ]]; then
+        echo "  newly added, nothing to compare"
+        echo
+        continue
+    fi
+    if [[ "${old}" == "${new}" ]]; then
+        continue
+    fi
+
+    # actions can live in a subdirectory, the compare API needs owner/repo only
+    path="${action#*/}"
+    repo="${action%%/*}/${path%%/*}"
+    echo "  https://github.com/${repo}/compare/${old}...${new}"
+    echo
+
+    curl "${curl_args[@]}" "https://api.github.com/repos/${repo}/compare/${old}...${new}" |
+        jq -r '
+            "  status=\(.status) ahead=\(.ahead_by) behind=\(.behind_by)",
+            "",
+            "  commits:",
+            (.commits[] | "    \(.sha[0:8]) \(.commit.message | split("\n")[0])"),
+            "",
+            "  files:",
+            (.files[]? | "    \(.status) \(.filename) +\(.additions)/-\(.deletions)")
+        '
+    echo
+done
+'''
+
+[tasks."tools:lock"]
+alias = "lock-tools"
+description = "Update .mise/mise.lock for the various needed platforms"
+run = """
+#!/usr/bin/env bash
+set -o errexit
+set -o pipefail
+mise lock --platform linux-arm64,linux-arm64-musl,linux-x64,linux-x64-musl
+"""
