@@ -1,6 +1,6 @@
 FROM alpine:3.24.1
 
-ARG VERSION=1.4.3
+ARG VERSION=1.5.0
 
 ## https://github.com/opencontainers/image-spec/blob/v1.1.1/annotations.md
 LABEL org.opencontainers.image.url="https://github.com/travelping/docker-pcap"

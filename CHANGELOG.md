@@ -1,4 +1,13 @@
 
+## v1.5.0
+
+- write compressed capture files with `COMPRESS=gzip` or `COMPRESS=lz4`,
+  avoiding additional compression scripts or post-processing after rotation
+- use tshark in version `4.6.6-r0`
+- use alpine:3.24.1 as base image
+- upgrade the base packages to the versions the alpine branch currently ships
+- use shell utilities from busybox instead of coreutils
+
 ## v1.4.3
 
 - use tshark in version `4.6.5-r0`
