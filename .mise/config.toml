@@ -102,7 +102,7 @@ exec "$cri" buildx build \
 
 [tasks."image:check-updates"]
 alias = "check-updates"
-description = "Check whether the alpine branch ships a newer tshark than the Dockerfile pins"
+description = "Check whether the base image or wireshark have newer releases than the Dockerfile pins"
 run = '''
 #!/usr/bin/env bash
 set -o errexit
@@ -110,42 +110,54 @@ set -o pipefail
 
 cd "$MISE_PROJECT_ROOT"
 
-# A maintainer's helper: does the alpine branch ship a newer tshark than the
-# Dockerfile pins? Nothing more. It reads the same APKINDEX apk would resolve
-# from, for both release arches.
-alpine=$(sed -nE 's/^FROM alpine:(.*)$/\1/p' Dockerfile | head -1)
-tshark=$(sed -nE 's/^[[:space:]]*tshark=([^[:space:]]+).*$/\1/p' Dockerfile | head -1)
+# A maintainer's helper: is there anything newer than what the Dockerfile pins?
+# Nothing more. Both pins are ARGs, so they are read straight out of the file.
+alpine=$(sed -nE 's/^ARG ALPINE_VERSION=(.*)$/\1/p' Dockerfile | head -1)
+wireshark=$(sed -nE 's/^ARG WIRESHARK_VERSION=(.*)$/\1/p' Dockerfile | head -1)
 branch="v${alpine%.*}"
+series="${wireshark%.*}"
 
-echo "Dockerfile: alpine:$alpine, tshark=$tshark (branch $branch)"
+echo "Dockerfile: alpine:$alpine, wireshark $wireshark"
 
 rc=0
-for arch in x86_64 aarch64; do
-    # The release workflow builds linux/amd64 and linux/arm64, so both arches
-    # have to carry the pinned revision -- they do drift apart for a few hours
-    # after a rebuild.
-    #
-    # awk reads the index to the end instead of exiting on the first match: an
-    # early exit closes the pipe, and the SIGPIPE it raises in tar would fail
-    # the whole task under pipefail.
-    if ! latest=$(curl --silent --show-error --fail --location \
-        "https://dl-cdn.alpinelinux.org/alpine/$branch/community/$arch/APKINDEX.tar.gz" \
-        | tar xzO APKINDEX \
-        | awk '/^P:tshark$/ { found=1; next } found && /^V:/ { sub(/^V:/, ""); print; found=0 }')
-    then
-        latest=""
-    fi
 
-    if [ "$latest" = "$tshark" ]; then
-        echo "  $arch: ok"
-    elif [ -z "$latest" ]; then
-        echo "  $arch: no tshark in $branch/community" >&2
-        rc=1
-    else
-        echo "  $arch: $branch now ships $latest, Dockerfile pins $tshark" >&2
-        rc=1
+if ! latest_alpine=$(curl --silent --show-error --fail --location \
+    "https://dl-cdn.alpinelinux.org/alpine/$branch/releases/x86_64/latest-releases.yaml" \
+    | sed -nE 's/^[[:space:]]*version:[[:space:]]*(.+)$/\1/p' | sort -u -V | tail -1)
+then
+    latest_alpine=""
+fi
+
+if [ "$latest_alpine" = "$alpine" ]; then
+    echo "  alpine: ok"
+else
+    echo "  alpine: $branch now ships ${latest_alpine:-<unknown>}" >&2
+    rc=1
+fi
+
+# Only within the pinned x.y series: moving to the next one is a deliberate
+# decision about a new wireshark, not something a version check should push.
+if ! latest_ws=$(curl --silent --show-error --fail --location \
+    "https://www.wireshark.org/download/src/all-versions/" \
+    | grep -oE "wireshark-$series\.[0-9]+\.tar\.xz" \
+    | sed -E 's/^wireshark-(.+)\.tar\.xz$/\1/' | sort -u -V | tail -1)
+then
+    latest_ws=""
+fi
+
+if [ "$latest_ws" = "$wireshark" ]; then
+    echo "  wireshark: ok"
+else
+    echo "  wireshark: $series series now at ${latest_ws:-<unknown>}" >&2
+    # The checksum the ARG needs alongside the version, from the same signature
+    # file the Dockerfile comment points at.
+    if [ -n "$latest_ws" ]; then
+        curl --silent --show-error --fail --location \
+            "https://www.wireshark.org/download/SIGNATURES-$latest_ws.txt" \
+            | sed -nE "s/^SHA256\(wireshark-$latest_ws\.tar\.xz\)=(.+)$/    WIRESHARK_SHA256=\1/p" >&2
     fi
-done
+    rc=1
+fi
 
 exit $rc
 '''
