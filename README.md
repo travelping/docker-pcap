@@ -24,6 +24,7 @@ These options are configurable:
 | `FILENAME`    |        `dump` |
 | `FORMAT`      |      `pcapng` |
 | `SNAPLENGTH`  | <deactivated> |
+| `COMPRESS`    | <uncompressed> |
 
 `IFACE` space-separated list of interfaces dumpcap should listen on.
 
@@ -55,6 +56,12 @@ to `dump.pcap`.  Other supported format is `pcapng`.
 the network capturing tool and stored into the CaptureFile. This is sometimes
 called PacketSlicing.  By default this is turned off so large packets are not
 truncated by accident.
+
+`COMPRESS` writes the capture files compressed. Supported values are `gzip` and
+`lz4`, the two formats dumpcap writes; leaving it empty writes uncompressed
+files. Unlike `FORMAT`, the `FILENAME` needs no adjustment: dumpcap appends the
+matching suffix (`.gz`, `.lz4`) itself. Files stay readable for `tshark -r` and
+`editcap` without unpacking them first.
 
 `PROMISCUOUS_MODE` defines if the given interface(s) are put into promiscous
 mode or not. If set to `"yes"`, promiscous mode is used for the interfaces.
