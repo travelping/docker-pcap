@@ -22,7 +22,7 @@ RUN apk upgrade --no-cache && \
     apk del .setcap && \
     adduser pcap -u 65532 -h /dev/null -G wireshark -D -H
 
-ADD run.sh /run.sh
+COPY --chmod=0755 run.sh /run.sh
 
 ENV FILTER="icmp"
 ENV IFACE="any"
