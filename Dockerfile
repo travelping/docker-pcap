@@ -17,7 +17,9 @@ LABEL org.opencontainers.image.description="pcap - capture network traffic"
 RUN apk upgrade --no-cache && \
     apk add --upgrade --no-cache \
     tshark=4.6.6-r0 && \
+    apk add --no-cache --virtual .setcap libcap-setcap && \
     setcap cap_net_raw+eip /usr/bin/dumpcap && \
+    apk del .setcap && \
     adduser pcap -u 65532 -h /dev/null -G wireshark -D -H
 
 ADD run.sh /run.sh
