@@ -1,0 +1,46 @@
+name: Container Image
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  # The image:* tasks default to podman, which the runners do not have.
+  CRI: docker
+
+jobs:
+  build:
+    name: "build-test"
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Setup mise
+        uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
+        with:
+          version: v2026.9.7
+          install: true
+          cache: true
+          experimental: true
+          github_token: "${{ secrets.GOVERNANCE_GITHUB_TOKEN }}"
+      # Multi-platform needs the docker-container driver; the plain docker
+      # driver builds the host platform only.
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
+      # The same platform set the release pushes, so nothing arch-specific
+      # reaches a release unbuilt. Neither pushed nor loaded: a multi-platform
+      # result cannot enter the local image store, and building it is the point.
+      - name: Build all release platforms
+        env:
+          PLATFORMS: linux/amd64,linux/arm64
+        run: mise run image:build
+      # Host platform again, this time loaded, because image:test runs it.
+      # Everything is cached from the step above, so this costs seconds.
+      - name: Build for the smoke test
+        env:
+          LOAD: "true"
+        run: mise run image:build
+      - name: Smoke test
+        run: mise run image:test
