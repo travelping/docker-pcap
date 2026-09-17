@@ -50,7 +50,8 @@ fi
 PCAPNG=""
 if [ "$FORMAT" = "pcap" ];
 then
-  PCAPNG="-P"
+  # -P deprecated since tshark:4.4 ~ 2024
+  PCAPNG="-F pcap"
 fi
 
 PMODE="--no-promiscuous-mode"
