@@ -10,11 +10,15 @@ LABEL org.opencontainers.image.vendor="Travelping GmbH"
 LABEL org.opencontainers.image.title="pcap-$VERSION"
 LABEL org.opencontainers.image.description="pcap - capture network traffic"
 
-RUN apk add -U --no-cache \
-    coreutils \
-    libcap-setcap \
+## setcap is only needed to stamp the capability onto dumpcap at build time, so
+## it is installed as a virtual package and removed again in the same layer --
+## the security.capability xattr it writes stays on the binary. libcap2 survives
+## this only if tshark itself pulls it in.
+RUN apk add --upgrade --no-cache \
     tshark=4.6.6-r0 && \
+    apk add --no-cache --virtual .setcap libcap-setcap && \
     setcap cap_net_raw+eip /usr/bin/dumpcap && \
+    apk del .setcap && \
     adduser pcap -u 65532 -h /dev/null -G wireshark -D -H
 
 ADD run.sh /run.sh
