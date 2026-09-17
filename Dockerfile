@@ -1,4 +1,4 @@
-FROM alpine:3.23.4
+FROM alpine:3.24.1
 
 ARG VERSION=1.4.3
 
@@ -10,10 +10,13 @@ LABEL org.opencontainers.image.vendor="Travelping GmbH"
 LABEL org.opencontainers.image.title="pcap-$VERSION"
 LABEL org.opencontainers.image.description="pcap - capture network traffic"
 
-RUN apk add -U --no-cache \
-    coreutils \
-    libcap-setcap \
-    tshark=4.6.5-r0 && \
+## setcap is only needed to stamp the capability onto dumpcap at build time, so
+## it is installed as a virtual package and removed again in the same layer --
+## the security.capability xattr it writes stays on the binary. libcap2 survives
+## this only if tshark itself pulls it in.
+RUN apk upgrade --no-cache && \
+    apk add --upgrade --no-cache \
+    tshark=4.6.6-r0 && \
     setcap cap_net_raw+eip /usr/bin/dumpcap && \
     adduser pcap -u 65532 -h /dev/null -G wireshark -D -H
 
