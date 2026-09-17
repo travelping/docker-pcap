@@ -15,7 +15,7 @@ LABEL org.opencontainers.image.description="pcap - capture network traffic"
 ## the security.capability xattr it writes stays on the binary. libcap2 survives
 ## this only if tshark itself pulls it in.
 RUN apk upgrade --no-cache && \
-    apk add --upgrade --no-cache \
+    apk add --no-cache \
     tshark=4.6.6-r0 && \
     apk add --no-cache --virtual .setcap libcap-setcap && \
     setcap cap_net_raw+eip /usr/bin/dumpcap && \
@@ -32,6 +32,7 @@ ENV MAXFILENUM="10"
 ENV FILENAME="dump"
 ENV FORMAT="pcapng"
 ENV SNAPLENGTH=""
+ENV COMPRESS=""
 
 RUN mkdir /data && chown 65532:101 /data
 
