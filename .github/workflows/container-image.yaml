@@ -18,9 +18,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Setup mise
-        uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
+        uses: jdx/mise-action@fc42bcc7ddbf51124c30f95a877a0c5168a3bfde # v5.2.1
         with:
-          version: v2026.9.7
+          version: v2026.10.25
           install: true
           cache: true
           experimental: true
@@ -28,7 +28,7 @@ jobs:
       # Multi-platform needs the docker-container driver; the plain docker
       # driver builds the host platform only.
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
       # The same platform set the release pushes, so nothing arch-specific
       # reaches a release unbuilt. Neither pushed nor loaded: a multi-platform
       # result cannot enter the local image store, and building it is the point.
