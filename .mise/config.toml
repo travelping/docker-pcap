@@ -1,8 +1,8 @@
 [tools]
-grype = "0.118.0"
+grype = "0.121.0"
 jq = "1.8.2"
-pinact = "5.0.0"
-trivy = "0.74.0"
+pinact = "5.0.2"
+trivy = "0.76.1"
 
 [tasks."image:build"]
 alias = "container-image"
