@@ -157,6 +157,10 @@ COPY --from=build /src/build/run/libwiretap.so* \
 ##
 ## gid 101 / the wireshark group are created here because nothing installs them
 ## any more -- they used to come from wireshark-common.
+##
+## The root CAs listed in tools/ca-distrust.sha256 (eMudhra/emSign) are dropped
+## from the system bundle once apk is done.
+COPY tools/ca-distrust.sh tools/ca-distrust.sha256 /tmp/
 RUN apk add --upgrade --no-cache --virtual .setup pax-utils libcap-setcap && \
     apk add --no-cache $(scanelf --needed --nobanner --format '%n#p' \
             /usr/bin/dumpcap /usr/bin/editcap /usr/bin/mergecap /usr/bin/reordercap \
@@ -167,7 +171,9 @@ RUN apk add --upgrade --no-cache --virtual .setup pax-utils libcap-setcap && \
     setcap cap_net_raw+eip /usr/bin/dumpcap && \
     apk del .setup && \
     addgroup -g 101 wireshark && \
-    adduser pcap -u 65532 -h /dev/null -G wireshark -D -H
+    adduser pcap -u 65532 -h /dev/null -G wireshark -D -H && \
+    sh /tmp/ca-distrust.sh /etc/ssl/certs/ca-certificates.crt /tmp/ca-distrust.sha256 && \
+    rm /tmp/ca-distrust.sh /tmp/ca-distrust.sha256
 
 COPY --chmod=0755 run.sh /run.sh
 
