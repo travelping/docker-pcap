@@ -21,8 +21,9 @@ arg "<platforms>" default="host" help="comma-separated build platforms, or 'host
 #   PUSH       'true' pushes the result instead of leaving it in the local store
 #   LOAD       'true' loads the result into the local image store, which a
 #              docker-container builder does not do by itself
-#   VERSION    value for the Dockerfile's VERSION build-arg, so the OCI labels
-#              name the release being built instead of the Dockerfile's default
+#   VERSION    value for the Containerfile's VERSION build-arg, so the OCI
+#              labels name the release being built instead of the
+#              Containerfile's default
 run = '''
 #!/usr/bin/env bash
 set -o errexit
@@ -86,23 +87,23 @@ if [ "${LOAD:-}" = "true" ]; then
     args+=(--load)
 fi
 
-# Without this the labels carry the Dockerfile's ARG default, which is only
+# Without this the labels carry the Containerfile's ARG default, which is only
 # correct as long as someone remembers to bump it before tagging.
 if [ -n "${VERSION:-}" ]; then
     args+=(--build-arg "VERSION=$VERSION")
 fi
 
-# The Dockerfile stays the single source of truth for the base image and the
-# tshark pin; nothing here overrides them.
+# The Containerfile stays the single source of truth for the base image and
+# the wireshark version; nothing here overrides them.
 exec "$cri" buildx build \
     --platform "$platforms" \
-    -f Dockerfile \
+    -f Containerfile \
     "${args[@]}" .
 '''
 
 [tasks."image:check-updates"]
 alias = "check-updates"
-description = "Check whether the alpine branch ships a newer tshark than the Dockerfile pins"
+description = "Check for alpine and wireshark releases newer than the Containerfile pins"
 run = '''
 #!/usr/bin/env bash
 set -o errexit
@@ -110,42 +111,70 @@ set -o pipefail
 
 cd "$MISE_PROJECT_ROOT"
 
-# A maintainer's helper: does the alpine branch ship a newer tshark than the
-# Dockerfile pins? Nothing more. It reads the same APKINDEX apk would resolve
-# from, for both release arches.
-alpine=$(sed -nE 's/^FROM alpine:(.*)$/\1/p' Dockerfile | head -1)
-tshark=$(sed -nE 's/^[[:space:]]*tshark=([^[:space:]]+).*$/\1/p' Dockerfile | head -1)
+# A maintainer's helper: is there a newer alpine patch release on the pinned
+# branch, or a newer wireshark release in the pinned major.minor series?
+# Nothing more -- bumping to a new branch or series is a deliberate decision.
+arg() { sed -nE "s/^ARG $1=(.*)$/\1/p" Containerfile | head -1; }
+alpine=$(arg ALPINE_VERSION)
+wireshark=$(arg WIRESHARK_VERSION)
 branch="v${alpine%.*}"
+series="${wireshark%.*}"
 
-echo "Dockerfile: alpine:$alpine, tshark=$tshark (branch $branch)"
+echo "Containerfile: alpine:$alpine (branch $branch), wireshark $wireshark (series $series)"
 
 rc=0
-for arch in x86_64 aarch64; do
-    # The release workflow builds linux/amd64 and linux/arm64, so both arches
-    # have to carry the pinned revision -- they do drift apart for a few hours
-    # after a rebuild.
-    #
-    # awk reads the index to the end instead of exiting on the first match: an
-    # early exit closes the pipe, and the SIGPIPE it raises in tar would fail
-    # the whole task under pipefail.
-    if ! latest=$(curl --silent --show-error --fail --location \
-        "https://dl-cdn.alpinelinux.org/alpine/$branch/community/$arch/APKINDEX.tar.gz" \
-        | tar xzO APKINDEX \
-        | awk '/^P:tshark$/ { found=1; next } found && /^V:/ { sub(/^V:/, ""); print; found=0 }')
-    then
-        latest=""
-    fi
 
-    if [ "$latest" = "$tshark" ]; then
-        echo "  $arch: ok"
-    elif [ -z "$latest" ]; then
-        echo "  $arch: no tshark in $branch/community" >&2
+# The release workflow builds linux/amd64 and linux/arm64; both arches have to
+# offer the release before the base image can move.
+#
+# Each fetch sits in an `if !`: errexit does not fire there, so a failed curl
+# (or a grep without a match) reaches its own message instead of aborting the
+# whole task.
+for arch in x86_64 aarch64; do
+    if ! latest=$(curl --silent --show-error --fail --location \
+        "https://dl-cdn.alpinelinux.org/alpine/$branch/releases/$arch/latest-releases.yaml" \
+        | awk '/^[[:space:]]*version:/ { v = $2 } END { print v }')
+    then
+        echo "  alpine $arch: cannot fetch the $branch release index" >&2
         rc=1
+    elif [ -z "$latest" ]; then
+        echo "  alpine $arch: no version in the $branch release index" >&2
+        rc=1
+    elif [ "$latest" = "$alpine" ]; then
+        echo "  alpine $arch: ok"
     else
-        echo "  $arch: $branch now ships $latest, Dockerfile pins $tshark" >&2
+        echo "  alpine $arch: $branch now at $latest, Containerfile pins $alpine" >&2
         rc=1
     fi
 done
+
+# The source listing is the place the build downloads from; sort -V picks the
+# highest patch release of the pinned series. grep exits 1 without a match, so
+# "no release in the series" lands in the `if !` branch, too.
+if ! latest=$(curl --silent --show-error --fail --location \
+    "https://www.wireshark.org/download/src/all-versions/" \
+    | grep -oE "wireshark-${series//./\\.}\.[0-9]+\.tar\.xz" \
+    | sed -E 's/^wireshark-(.*)\.tar\.xz$/\1/' \
+    | sort -uV | tail -1)
+then
+    echo "  wireshark: cannot fetch the source listing, or no $series release in it" >&2
+    rc=1
+elif [ "$latest" = "$wireshark" ]; then
+    echo "  wireshark: ok"
+else
+    echo "  wireshark: $latest released, Containerfile pins $wireshark" >&2
+    echo "    WIRESHARK_VERSION=$latest" >&2
+    # The version line above stays even when the checksum cannot be fetched.
+    if ! sha=$(curl --silent --show-error --fail --location \
+        "https://www.wireshark.org/download/SIGNATURES-$latest.txt" \
+        | sed -nE "s/^SHA256\(wireshark-${latest//./\\.}\.tar\.xz\)=([0-9a-f]+)$/\1/p") \
+        || [ -z "$sha" ]
+    then
+        sha="<not found in SIGNATURES-$latest.txt>"
+    fi
+    echo "    WIRESHARK_SHA256=$sha" >&2
+    rc=1
+fi
 
 exit $rc
 '''
@@ -162,7 +191,7 @@ set -o errexit
 set -o pipefail
 
 # NET_RAW alone is enough: the image drops to uid 65532 and dumpcap carries the
-# file capability, so this also proves the setcap in the Dockerfile survived the
+# file capability, so this also proves the setcap in the Containerfile survived the
 # build. NET_ADMIN is not needed -- promiscuous mode stays off by default.
 cid=$("${CRI:-podman}" run --detach --cap-add=NET_RAW \
     --env IFACE=lo --env FILTER=icmp --env DURATION=5 --env MAXFILENUM=2 \

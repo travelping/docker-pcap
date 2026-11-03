@@ -1,7 +1,7 @@
 #!/bin/sh
 set -x
 
-# FIX: since tshark wont write to a directory that is not owned by the user
+# FIX: since dumpcap wont write to a directory that is not owned by the user
 # executing the command
 chown root:root /data
 
@@ -50,7 +50,7 @@ fi
 PCAPNG=""
 if [ "$FORMAT" = "pcap" ];
 then
-  # -P deprecated since tshark:4.4 ~ 2024
+  # -P deprecated since dumpcap:4.4 ~ 2024
   PCAPNG="-F pcap"
 fi
 
