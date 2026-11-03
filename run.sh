@@ -1,10 +1,6 @@
 #!/bin/sh
 set -x
 
-# FIX: since dumpcap wont write to a directory that is not owned by the user
-# executing the command
-chown root:root /data
-
 INTERFACE=""
 BUFFEROPTS=""
 
