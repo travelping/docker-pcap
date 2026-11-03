@@ -20,7 +20,7 @@
 ## installed alpine's wireshark-common package.
 
 ARG ALPINE_VERSION=3.24.3
-ARG VERSION=1.5.0
+ARG VERSION=1.6.0
 
 FROM alpine:${ALPINE_VERSION} AS build
 

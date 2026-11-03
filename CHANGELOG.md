@@ -1,3 +1,17 @@
+## v1.6.0
+
+- ship only the capture tools -- dumpcap, editcap, mergecap and reordercap --
+  built from Wireshark 4.6.9 source; tshark, capinfos and libwireshark with
+  its libraries (gnutls, libssh, lua, krb5, ...) are no longer part of the
+  image, and neither are the CVEs reported against them.
+- capture on regular interfaces only; 802.11 monitor mode is not supported
+- use alpine:3.24.3 as base image, with `ca-certificates-bundle` 20261020
+- distrust the eMudhra/emSign root CAs whose intermediates had their private
+  keys compromised in 2026-10: the system CA bundle is filtered against
+  `tools/ca-distrust.sha256` at build time
+- start with a clean container log, and leave a mounted `/data` with its
+  owner when the container runs as root: `/data` ownership is the image's
+  (65532:101)
 
 ## v1.5.0
 

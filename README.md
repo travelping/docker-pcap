@@ -14,17 +14,18 @@ run` command.
 
 These options are configurable:
 
-| Name          | default value |
-|:--------------|:--------------|
-| `IFACE`       |         `any` |
-| `FILTER`      |      `"icmp"` |
-| `MAXFILESIZE` |        `1000` |
-| `MAXFILENUM`  |          `10` |
-| `DURATION`    |       `"600"` |
-| `FILENAME`    |        `dump` |
-| `FORMAT`      |      `pcapng` |
-| `SNAPLENGTH`  | <deactivated> |
-| `COMPRESS`    | <uncompressed> |
+| Name            | default value   |
+| :-------------- | :-------------- |
+| `IFACE`         | `any`           |
+| `FILTER`        | `"icmp"`        |
+| `MAXFILESIZE`   | `1000`          |
+| `MAXFILENUM`    | `10`            |
+| `DURATION`      | `"600"`         |
+| `FILENAME`      | `dump`          |
+| `FORMAT`        | `pcapng`        |
+| `SNAPLENGTH`    | <deactivated>   |
+| `COMPRESS`      | <uncompressed>  |
+
 
 `IFACE` space-separated list of interfaces dumpcap should listen on.
 
